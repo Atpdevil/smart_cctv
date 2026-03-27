@@ -303,9 +303,11 @@ def _update_clip_paths(cam_id, track_id, clip_path, thumb_path):
             cursor.execute("""
                 UPDATE detection_index
                 SET clip_path = ?, thumb_path = ?
-                WHERE cam_id = ? AND track_id = ?
-                  AND clip_path IS NULL
-                ORDER BY timestamp DESC LIMIT 1
+                WHERE id = (
+                    SELECT id FROM detection_index
+                    WHERE cam_id = ? AND track_id = ? AND clip_path IS NULL
+                    ORDER BY timestamp DESC LIMIT 1
+                )
             """, (clip_path, thumb_path, str(cam_id), track_id))
             conn.commit()
     except Exception as e:
