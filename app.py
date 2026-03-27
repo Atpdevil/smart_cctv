@@ -20,8 +20,7 @@ import camera_groups
 
 app = Flask(__name__)
 
-# ── Camera → Video file mapping ──
-# Removing cam-01 as requested
+# ── Camera → Video file mapping (cam-01 removed: focusing on same-hall cameras) ──
 CAMERAS = {
     "cam-02": {"path": "videos/view-IP2.mp4", "label": "CAM_02_PARKING"},
     "cam-03": {"path": "videos/view-IP5.mp4", "label": "CAM_03_ENTRANCE"},
@@ -38,7 +37,7 @@ CLASS_NAMES = {
 # Pipeline config
 DETECT_EVERY_N = 3       # Run YOLO every N frames (skip in between)
 TARGET_FPS = 25           # Target frame rate for smooth playback
-DETECTION_WIDTH = 640    # Downscale frames to this width for inference (faster)
+DETECTION_WIDTH = 640    # Downscale frames to this width for YOLO (faster on 1080p)
 
 # Initialize DB
 init_db()
@@ -103,7 +102,7 @@ def camera_worker(cam_id):
     frame_count = 0
     last_tracked_objects = []
 
-    print(f"🎥 Pipeline started for {cam_id} ({pipeline['label']}) @ {video_fps:.1f}fps | Inference Scale: {scale:.2f}")
+    print(f"🎥 Pipeline started for {cam_id} ({pipeline['label']}) @ {video_fps:.1f}fps | Scale: {scale:.2f}")
 
     while True:
         loop_start = time.time()
@@ -120,7 +119,7 @@ def camera_worker(cam_id):
         if frame_count % DETECT_EVERY_N == 1 or DETECT_EVERY_N == 1:
             frame_small = cv2.resize(frame, (0, 0), fx=scale, fy=scale)
             detections_small = detector.detect(frame_small)
-            
+
             # Upscale detections back to original resolution
             detections = []
             for (x1, y1, x2, y2, conf, cls_id) in detections_small:
@@ -132,24 +131,15 @@ def camera_worker(cam_id):
                     conf,
                     cls_id
                 ))
-            
+
             tracked_objects_local = tracker.update(frame, detections)
-            
-            # ── Cross-Camera Re-Identification (Global Tracker Integration) ──
+
+            # ── Cross-Camera ReID: resolve local IDs to global IDs ──
             tracked_objects = []
-            active_keys = []
             for (x1, y1, x2, y2, local_id, cls_id) in tracked_objects_local:
-                # Extract crop for ReID
                 crop = frame[max(0, y1):min(full_h, y2), max(0, x1):min(full_w, x2)]
-                
-                # Resolve local track ID to a persistent global ID
                 global_id = global_tracker.resolve(cam_id, local_id, crop, cls_id)
                 tracked_objects.append((x1, y1, x2, y2, global_id, cls_id))
-                active_keys.append((cam_id, local_id))
-                
-            # Periodically cleanup stale IDs from global tracker
-            if frame_count % 100 == 0:
-                global_tracker.cleanup_stale(active_keys)
 
             last_tracked_objects = tracked_objects
         else:
@@ -266,7 +256,7 @@ def api_get_zones():
 def api_post_zones():
     data = request.json
     name = data.get('name', 'Custom Zone')
-    cam_id = data.get('cam_id', 'cam-02')
+    cam_id = data.get('cam_id', 'cam-01')
     x1_ratio = float(data.get('x1_ratio', 0))
     y1_ratio = float(data.get('y1_ratio', 0))
     x2_ratio = float(data.get('x2_ratio', 0))
