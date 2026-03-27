@@ -10,11 +10,15 @@ ENV/
 # Database
 cctv.db
 
-# Snapshots and Media
+# Media
 snapshots/
+clips/
+thumbs/
 *.mp4
 *.jpg
 *.png
+!videos/
+!videos/**
 
 # Weights
 *.pt
