@@ -118,6 +118,8 @@
         .scanning-dot:nth-child(3) { animation: dotPulse 1.2s infinite 0.4s; }
         .group-active { box-shadow: 0 0 8px rgba(34,211,238,0.5); border-color: #22d3ee !important; color: #22d3ee !important; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .active-feed { border-color: rgba(var(--md-sys-color-primary-rgb, 96 165 250), 0.7) !important; box-shadow: 0 0 12px rgba(96, 165, 250, 0.3); }
+        .feed-tile { transition: all 0.2s ease; }
     </style>
 </head>
 <body class="bg-surface font-body text-on-surface overflow-hidden h-screen select-none">
@@ -207,40 +209,33 @@
 <h2 class="font-headline font-bold text-amber-500 tracking-widest uppercase mb-2 flex items-center gap-2">
 <span class="material-symbols-outlined text-sm">videocam</span> FEED_MATRIX
                     </h2>
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-2 gap-4" id="feed-matrix-grid">
 <!-- Cam 01 -->
-<div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 group hover:border-primary/50 transition-colors">
-<img class="w-full h-full object-cover grayscale opacity-60" data-alt="Grainy low-light security camera footage of an industrial warehouse interior with metallic shelves and high contrast shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVWftI2lh23th_duoNqo-8U9rGdO0JQ2hMFGZBwdgks27n5wCi-1uKsfQr-OzZeojFrXD5mqcdlRlufyU4d01ILjSYuQDnTWzZK5XYYP_7_J8E-DFsSTm_G_ytGtseZaeKTDpWa2XJcx4ejk_Ce_rE8IO0H42BxcJEbl0zANZYL4jW3NgUHNkNMFrnxfFgv3jUeuZIJBib4RL-Jks2tkyVEj9hbL39hG1OGxKmfFyhEEDdEGRqFXxT5o0AEPVFOfp05n3l9Je8JFJP"/>
+<div class="aspect-video bg-surface-container-low relative scanline-anim border border-primary/50 group hover:border-primary/70 transition-colors cursor-pointer feed-tile active-feed" data-cam="cam-01" onclick="switchFeed('cam-01', this)">
+<img class="w-full h-full object-cover" src="/video_feed/cam-01"/>
 <div class="absolute top-1 left-1 flex items-center gap-1 bg-black/60 px-1 py-0.5 rounded-sm">
 <div class="w-1.5 h-1.5 bg-tertiary pulse-red rounded-full"></div>
 <span class="font-label text-[8px] text-tertiary">LIVE</span>
 </div>
-<div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">CAM_01_WEST_WNG</div>
+<div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">CAM_01_CORRIDOR</div>
 </div>
 <!-- Cam 02 -->
-<div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 group hover:border-primary/50 transition-colors">
-<img class="w-full h-full object-cover grayscale opacity-60" data-alt="Static security camera view of a dark server room aisle with blinking blue and green rack lights and sharp metallic edges" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLgbUp-T86YVPFnHHORoPEVbHwxM6sKwAi7G2goHfhQZKvhXZ7gw16KnwFrYy-tGUPb2hc_mXUNbLU6IbLESVsk-W_QD8VFXc38SafkBEJFbvuoPZIdDqrqBm2LVxUXh5MYQEaAnR8mOyXes5n62oSJOCmb05OGXs_S-tCvOj5k6Q3sTCpEiLJ1kjq1xmGD7l9EelrRpHelvyzD0qfiwln120g7xKtad8PxovJai9RDZauuK66lP_Fk978prR3U-Glug98o0li4AI5"/>
+<div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 group hover:border-primary/50 transition-colors cursor-pointer feed-tile" data-cam="cam-02" onclick="switchFeed('cam-02', this)">
+<img class="w-full h-full object-cover" src="/video_feed/cam-02"/>
 <div class="absolute top-1 left-1 flex items-center gap-1 bg-black/60 px-1 py-0.5 rounded-sm">
 <div class="w-1.5 h-1.5 bg-tertiary pulse-red rounded-full"></div>
 <span class="font-label text-[8px] text-tertiary">LIVE</span>
 </div>
-<div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">CAM_02_SRV_FLR</div>
+<div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">CAM_02_PARKING</div>
 </div>
 <!-- Cam 03 -->
-<div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 border-tertiary/50">
-<img class="w-full h-full object-cover grayscale opacity-40 blur-[1px]" data-alt="High-angle thermal security view of a parking garage entrance with distorted figures and high contrast light patterns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7hlmBL_yXKigotRRTPuPt0ccDYVRtMCDt_kK9iU7TbSgI2SjjpLNWSGXQy_3U0JlGQCrphtKe7VgIGVD7JZXOagGPJXJhel6FQHu2kpQHmnWF_DQQ6V4WAYM6cImZeLQ8HZNbQXm4rzj8LkzokbPS7LCiItMnWQsuwKPj28p0w_v3B8T6A0N0wIHIooYbxx3y1WNLxLha-yDdQ9Q0CEirLGx68U3e_pddu0bOEFCipB8s05aJ1V8EyTB_sfLA2NlfQ43bfyzkVcY6"/>
-<div class="absolute inset-0 bg-tertiary/5 flex items-center justify-center">
-<span class="font-headline font-black text-tertiary text-xs tracking-tighter">ALERT: MOTION</span>
+<div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 group hover:border-primary/50 transition-colors cursor-pointer feed-tile" data-cam="cam-03" onclick="switchFeed('cam-03', this)">
+<img class="w-full h-full object-cover" src="/video_feed/cam-03"/>
+<div class="absolute top-1 left-1 flex items-center gap-1 bg-black/60 px-1 py-0.5 rounded-sm">
+<div class="w-1.5 h-1.5 bg-tertiary pulse-red rounded-full"></div>
+<span class="font-label text-[8px] text-tertiary">LIVE</span>
 </div>
-<div class="absolute bottom-1 right-1 font-label text-[8px] text-tertiary">CAM_03_PRK_LOT</div>
-</div>
-<!-- Cam 04 -->
-<div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 opacity-50 grayscale">
-<div class="absolute inset-0 flex items-center justify-center flex-col gap-1">
-<span class="material-symbols-outlined text-on-surface/20">signal_disconnected</span>
-<span class="font-label text-[8px] text-on-surface/20">OFFLINE</span>
-</div>
-<div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/20">CAM_04_EXT_PRM</div>
+<div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">CAM_03_ENTRANCE</div>
 </div>
 </div>
 <!-- Additional Sidebar Modules -->
@@ -576,7 +571,16 @@
     });
 
     // ── CAMERA GROUPS ──
+    let activeCamId = 'cam-01';
     let activeGroupId = null;
+
+    function switchFeed(camId, el) {
+        activeCamId = camId;
+        document.getElementById('main-video-feed').src = '/video_feed/' + camId;
+        document.querySelectorAll('.feed-tile').forEach(t => t.classList.remove('active-feed'));
+        if (el) el.classList.add('active-feed');
+    }
+
     function fetchCameraGroups() {
         fetch('/api/camera-groups').then(r => r.json()).then(data => {
             const c = document.getElementById('camera-groups-container');

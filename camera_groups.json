@@ -1,28 +1,36 @@
 {
   "groups": [
     {
-      "group_id": "floor1_zone_a",
-      "label": "Floor 1 — Zone A",
+      "group_id": "corridor_view",
+      "label": "Corridor — High Angle",
       "floor": "1",
-      "zone": "Zone A",
+      "zone": "Corridor",
       "type": "floor",
-      "cameras": ["cam-01", "cam-02"]
+      "cameras": ["cam-01"]
     },
     {
-      "group_id": "entrance_cluster",
-      "label": "Entrance — Multi-Angle",
-      "floor": "1",
-      "zone": "Entrance",
-      "type": "multi_angle",
-      "cameras": ["cam-01", "cam-02", "cam-05"]
-    },
-    {
-      "group_id": "parking_perimeter",
-      "label": "Parking — Perimeter",
+      "group_id": "parking_view",
+      "label": "Parking — IP Cam",
       "floor": "G",
       "zone": "Parking",
       "type": "perimeter",
-      "cameras": ["cam-03", "cam-04"]
+      "cameras": ["cam-02"]
+    },
+    {
+      "group_id": "entrance_view",
+      "label": "Entrance — IP Cam",
+      "floor": "1",
+      "zone": "Entrance",
+      "type": "multi_angle",
+      "cameras": ["cam-03"]
+    },
+    {
+      "group_id": "all_feeds",
+      "label": "All Feeds — Full Coverage",
+      "floor": "ALL",
+      "zone": "All",
+      "type": "cluster",
+      "cameras": ["cam-01", "cam-02", "cam-03"]
     }
   ]
 }

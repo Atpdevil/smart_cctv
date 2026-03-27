@@ -17,7 +17,13 @@ import camera_groups
 
 app = Flask(__name__)
 
-VIDEO_FILE = "test.mp4"
+# ── Camera → Video file mapping ──
+CAMERAS = {
+    "cam-01": {"path": "videos/view-HC3.mp4", "label": "CAM_01_CORRIDOR"},
+    "cam-02": {"path": "videos/view-IP2.mp4", "label": "CAM_02_PARKING"},
+    "cam-03": {"path": "videos/view-IP5.mp4", "label": "CAM_03_ENTRANCE"},
+}
+
 CLASS_NAMES = {
     0: "Person",
     2: "Car",
@@ -26,38 +32,54 @@ CLASS_NAMES = {
     7: "Truck"
 }
 
-# Initialize the environment and persistent instances
+# Initialize DB
 init_db()
-CAMERA_ID = 1
 
+# Shared singletons
 intent_manager = IntentManager()
 mode_manager = ModeManager()
-event_manager = EventManager(CAMERA_ID)
-detector = HumanDetector()
-tracker = PersonTracker()
-zone_manager = ZoneManager(CAMERA_ID)
 clip_recorder = ClipRecorder()
-
-# Make the LLM query mode active by default for the dashboard
 mode_manager.set_mode("query")
 
-# Register suspicious stay callback to trigger clip recording
-def _on_suspicious(track_id, duration):
-    clip_recorder.trigger_clip(CAMERA_ID, "suspicious_stay", track_id, None)
+# ── Per-camera pipelines ──
+cam_pipelines = {}
+for cam_id, cam_cfg in CAMERAS.items():
+    pipeline = {
+        "detector": HumanDetector(),
+        "tracker": PersonTracker(),
+        "event_manager": EventManager(camera_id=cam_id),
+        "zone_manager": ZoneManager(camera_id=cam_id),
+        "video_path": cam_cfg["path"],
+        "label": cam_cfg["label"],
+    }
+    # Register suspicious callback per camera
+    def _make_callback(cid):
+        def _on_suspicious(track_id, duration):
+            clip_recorder.trigger_clip(cid, "suspicious_stay", track_id, None)
+        return _on_suspicious
+    pipeline["event_manager"].on_suspicious(_make_callback(cam_id))
+    cam_pipelines[cam_id] = pipeline
 
-event_manager.on_suspicious(_on_suspicious)
 
-
-def generate_frames():
-    cap = cv2.VideoCapture(VIDEO_FILE)
-    if not cap.isOpened():
-        print("Error: Could not open video.")
+def generate_frames(cam_id):
+    """MJPEG generator for a specific camera."""
+    pipeline = cam_pipelines.get(cam_id)
+    if not pipeline:
         return
+
+    cap = cv2.VideoCapture(pipeline["video_path"])
+    if not cap.isOpened():
+        print(f"Error: Could not open video for {cam_id}: {pipeline['video_path']}")
+        return
+
+    detector = pipeline["detector"]
+    tracker = pipeline["tracker"]
+    event_mgr = pipeline["event_manager"]
+    zone_mgr = pipeline["zone_manager"]
 
     while True:
         ret, frame = cap.read()
         if not ret:
-            # If video ends, restart it for a continuous stream demo
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             continue
 
@@ -65,13 +87,12 @@ def generate_frames():
 
         detections = detector.detect(frame)
         tracked_objects = tracker.update(frame, detections)
-        event_manager.update(tracked_objects, frame)
-        zone_manager.draw_zones(frame)
+        event_mgr.update(tracked_objects, frame)
+        zone_mgr.draw_zones(frame)
 
         for (x1, y1, x2, y2, track_id, cls_id) in tracked_objects:
             process_object = True
-            
-            # Filter objects if a natural language query restricts it
+
             if mode_manager.is_query_mode():
                 process_object = intent_manager.match(cls_id)
             if mode_manager.is_query_mode() and not process_object:
@@ -82,30 +103,52 @@ def generate_frames():
             label = CLASS_NAMES.get(cls_id, "Object")
 
             if process_object and cls_id == 0:
-                 intrusion_result = zone_manager.check_intrusion(track_id, center_x, center_y, VIDEO_FILE, video_time)
-                 if intrusion_result.get("triggered"):
-                     clip_recorder.trigger_clip(CAMERA_ID, "intrusion", track_id, intrusion_result.get("zone_name"))
+                intrusion_result = zone_mgr.check_intrusion(
+                    track_id, center_x, center_y, pipeline["video_path"], video_time
+                )
+                if intrusion_result.get("triggered"):
+                    clip_recorder.trigger_clip(
+                        cam_id, "intrusion", track_id, intrusion_result.get("zone_name")
+                    )
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(frame, f"{label} ID {track_id}", (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.circle(frame, (center_x, center_y), 4, (255, 0, 0), -1)
 
-        # Push frame to clip recorder buffer
-        clip_recorder.push_frame(CAMERA_ID, frame)
+        clip_recorder.push_frame(cam_id, frame)
 
         ret, buffer = cv2.imencode('.jpg', frame)
         frame_bytes = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/video_feed/<cam_id>')
+def video_feed(cam_id="cam-01"):
+    if cam_id not in CAMERAS:
+        cam_id = "cam-01"
+    return Response(generate_frames(cam_id),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/api/cameras')
+def api_cameras():
+    result = []
+    for cam_id, cfg in CAMERAS.items():
+        result.append({
+            "cam_id": cam_id,
+            "label": cfg["label"],
+            "feed_url": f"/video_feed/{cam_id}"
+        })
+    return jsonify(result)
+
 
 @app.route('/api/stats')
 def api_stats():
@@ -123,27 +166,34 @@ def api_get_zones():
 def api_post_zones():
     data = request.json
     name = data.get('name', 'Custom Zone')
+    cam_id = data.get('cam_id', 'cam-01')
     x1_ratio = float(data.get('x1_ratio', 0))
     y1_ratio = float(data.get('y1_ratio', 0))
     x2_ratio = float(data.get('x2_ratio', 0))
     y2_ratio = float(data.get('y2_ratio', 0))
-    
-    cap = cv2.VideoCapture(VIDEO_FILE)
+
+    pipeline = cam_pipelines.get(cam_id)
+    if not pipeline:
+        return jsonify({"error": "Unknown cam_id"}), 400
+
+    cap = cv2.VideoCapture(pipeline["video_path"])
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     cap.release()
-    
+
     x1 = int(x1_ratio * width)
     y1 = int(y1_ratio * height)
     x2 = int(x2_ratio * width)
     y2 = int(y2_ratio * height)
-    
-    zone_manager.save_zone(name, x1, y1, x2, y2, "restricted")
+
+    pipeline["zone_manager"].save_zone(name, x1, y1, x2, y2, "restricted")
     return jsonify({"status": "success"})
 
 @app.route('/api/zones/<int:zone_id>', methods=['DELETE'])
 def api_delete_zones(zone_id):
-    zone_manager.delete_zone(zone_id)
+    # Delete from all zone managers
+    for p in cam_pipelines.values():
+        p["zone_manager"].delete_zone(zone_id)
     return jsonify({"status": "success"})
 
 @app.route('/api/intent', methods=['POST'])
@@ -172,7 +222,6 @@ def api_search():
 
         filters = intent_manager.parse_search_query(query)
 
-        # If a group_id was passed from the frontend, add its cam_ids
         if group_id:
             cam_ids = camera_groups.get_cameras_for_group(group_id)
             if cam_ids:
@@ -180,7 +229,6 @@ def api_search():
 
         results = query_detection_index(filters)
 
-        # Resolve URLs for clips and thumbs
         for r in results:
             if r.get("clip_path"):
                 r["clip_url"] = "/" + r["clip_path"].replace("\\", "/")
@@ -191,11 +239,9 @@ def api_search():
             else:
                 r["thumb_url"] = None
 
-            # Add group label
             grp = camera_groups.get_group_for_camera(r.get("cam_id", ""))
             r["group_label"] = grp["label"] if grp else "Unknown"
 
-        # Collect unique cameras searched
         cameras_searched = list(set(r.get("cam_id", "") for r in results))
 
         return jsonify({
@@ -217,7 +263,6 @@ def api_timeline():
         return jsonify({"error": "track_id is required"}), 400
     try:
         results = query_detection_index({"track_id": int(track_id)})
-        # Reverse to ASC order for timeline
         results.reverse()
         for r in results:
             if r.get("clip_path"):
@@ -230,7 +275,7 @@ def api_timeline():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ── Static file serving for clips and thumbs ──
+# ── Static file serving ──
 @app.route('/clips/<path:filepath>')
 def serve_clip(filepath):
     clips_dir = os.path.join(os.path.dirname(__file__), 'clips')
