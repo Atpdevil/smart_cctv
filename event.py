@@ -134,20 +134,15 @@ class EventManager:
             else:
                 self.active_tracks[track_id]["last_seen"] = current_time
 
-        # 🔹 CHECK FOR SUSPICIOUS STAY
-        for track_id, data in self.active_tracks.items():
-            duration = (current_time - data["entry_time"]).total_seconds()
-
-            if duration > SUSPICIOUS_THRESHOLD and not data["suspicious"]:
-                print(f"⚠ Suspicious Stay Detected: ID {track_id}")
-                log_suspicious(track_id, self.camera_id, duration)
-                data["suspicious"] = True
-                # Fire callbacks
-                for cb in self._suspicious_callbacks:
-                    try:
-                        cb(track_id, duration)
-                    except Exception:
-                        pass
+        # 🔹 CHECK FOR SUSPICIOUS STAY (Disabled)
+        # for track_id, data in self.active_tracks.items():
+        #     duration = (current_time - data["entry_time"]).total_seconds()
+        # 
+        #     if duration > SUSPICIOUS_THRESHOLD and not data["suspicious"]:
+        #         print(f"⚠ Suspicious Stay Detected: ID {track_id}")
+        #         log_suspicious(track_id, self.camera_id, duration)
+        #         data["suspicious"] = True
+        #         ...
 
         # 🔹 HANDLE EXIT (with delay buffer)
         for track_id in list(self.active_tracks.keys()):

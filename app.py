@@ -22,9 +22,7 @@ app = Flask(__name__)
 
 # ── Camera → Video file mapping ──────────────────────────────────────────────
 CAMERAS = {
-    "cam-01": {"path": "videos/1.mp4", "label": "CAM_01"},
-    "cam-02": {"path": "videos/2.mp4", "label": "CAM_02"},
-    "cam-03": {"path": "videos/3.mp4", "label": "CAM_03"},
+    "cam-01": {"path": "videos/cctv_empty.webm", "label": "MAIN_FEED"}
 }
 
 CLASS_NAMES = {
@@ -260,9 +258,9 @@ def index():
 
 @app.route('/video_feed')
 @app.route('/video_feed/<cam_id>')
-def video_feed(cam_id="cam-02"):
+def video_feed(cam_id="cam-01"):
     if cam_id not in CAMERAS:
-        cam_id = "cam-02"
+        cam_id = "cam-01"
     return Response(
         generate_frames(cam_id),
         mimetype='multipart/x-mixed-replace; boundary=frame'
@@ -300,15 +298,13 @@ def api_get_zones():
 def api_post_zones():
     data      = request.json
     name      = data.get('name', 'Custom Zone')
-    cam_id    = data.get('cam_id', 'cam-02')          # ← fixed: was 'cam-01' (removed)
-    x1_ratio  = float(data.get('x1_ratio', 0))
-    y1_ratio  = float(data.get('y1_ratio', 0))
-    x2_ratio  = float(data.get('x2_ratio', 0))
-    y2_ratio  = float(data.get('y2_ratio', 0))
+    cam_id    = data.get('cam_id', 'cam-01')          # ← fixed: was 'cam-01' (removed)
 
     pipeline = cam_pipelines.get(cam_id)
     if not pipeline:
-        return jsonify({"error": "Unknown cam_id"}), 400
+        # Fallback to cam-01 if unknown
+        pipeline = cam_pipelines.get('cam-01')
+        cam_id = 'cam-01'
 
     cap    = cv2.VideoCapture(pipeline["video_path"])
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)

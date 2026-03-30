@@ -300,61 +300,10 @@
             </header>
             <!-- Dashboard Body -->
             <div class="flex-1 flex overflow-hidden p-4 gap-4">
-                <!-- Left Sidebar: 2x2 Grid -->
-                <section class="w-1/4 h-full flex flex-col gap-4 overflow-y-auto pr-2">
+                <!-- Left Sidebar: Zone Management -->
+                <section class="w-1/6 md:w-1/5 h-full flex flex-col gap-4 overflow-y-auto pr-2">
                     <!-- Camera Group Selector -->
-                    <div class="p-3 bg-surface-container-low border border-outline-variant/10">
-                        <h3
-                            class="font-headline text-cyan-400 text-sm mb-2 uppercase tracking-widest flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm">hub</span> CAM_GROUPS
-                        </h3>
-                        <div id="camera-groups-container" class="space-y-1">
-                            <div class="p-2 bg-surface/50 border border-outline-variant/10 cursor-pointer group-active text-[10px] font-label"
-                                onclick="selectGroup(null, this)">ALL CAMERAS</div>
-                        </div>
-                    </div>
-                    <h2
-                        class="font-headline font-bold text-amber-500 tracking-widest uppercase mb-2 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">videocam</span> FEED_MATRIX
-                    </h2>
-                    <div class="grid grid-cols-2 gap-4" id="feed-matrix-grid">
-                        <!-- Cam 01 -->
-                        <div class="aspect-video bg-surface-container-low relative scanline-anim border border-primary/50 group hover:border-primary/70 transition-colors cursor-pointer feed-tile active-feed"
-                            data-cam="cam-01" onclick="switchFeed('cam-01', this)">
-                            <img class="w-full h-full object-cover" src="/video_feed/cam-01" />
-                            <div
-                                class="absolute top-1 left-1 flex items-center gap-1 bg-black/60 px-1 py-0.5 rounded-sm">
-                                <div class="w-1.5 h-1.5 bg-tertiary pulse-red rounded-full"></div>
-                                <span class="font-label text-[8px] text-tertiary">LIVE</span>
-                            </div>
-                            <div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">
-                                CAM_01</div>
-                        </div>
-                        <!-- Cam 02 -->
-                        <div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 group hover:border-primary/50 transition-colors cursor-pointer feed-tile"
-                            data-cam="cam-02" onclick="switchFeed('cam-02', this)">
-                            <img class="w-full h-full object-cover" src="/video_feed/cam-02" />
-                            <div
-                                class="absolute top-1 left-1 flex items-center gap-1 bg-black/60 px-1 py-0.5 rounded-sm">
-                                <div class="w-1.5 h-1.5 bg-tertiary pulse-red rounded-full"></div>
-                                <span class="font-label text-[8px] text-tertiary">LIVE</span>
-                            </div>
-                            <div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">
-                                CAM_02</div>
-                        </div>
-                        <!-- Cam 03 -->
-                        <div class="aspect-video bg-surface-container-low relative scanline-anim border border-outline-variant/20 group hover:border-primary/50 transition-colors cursor-pointer feed-tile"
-                            data-cam="cam-03" onclick="switchFeed('cam-03', this)">
-                            <img class="w-full h-full object-cover" src="/video_feed/cam-03" />
-                            <div
-                                class="absolute top-1 left-1 flex items-center gap-1 bg-black/60 px-1 py-0.5 rounded-sm">
-                                <div class="w-1.5 h-1.5 bg-tertiary pulse-red rounded-full"></div>
-                                <span class="font-label text-[8px] text-tertiary">LIVE</span>
-                            </div>
-                            <div class="absolute bottom-1 right-1 font-label text-[8px] text-on-surface/50">
-                                CAM_03</div>
-                        </div>
-                    </div>
+                    <!-- Multi-cam controls removed for max-frame single layout -->
                     <!-- Additional Sidebar Modules -->
                     <div class="mt-4 flex flex-col gap-4">
                         <div class="p-3 bg-surface-container-low relative overflow-hidden">
