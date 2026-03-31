@@ -22,7 +22,8 @@ app = Flask(__name__)
 
 # ── Camera → Video file mapping ──────────────────────────────────────────────
 CAMERAS = {
-    "cam-01": {"path": "videos/cctv_empty.webm", "label": "MAIN_FEED"}
+    "cam-01": {"path": "videos/1.mp4", "label": "CAMERA_01"},
+    "cam-02": {"path": "videos/2.mp4", "label": "CAMERA_02"}
 }
 
 CLASS_NAMES = {
@@ -34,8 +35,8 @@ CLASS_NAMES = {
 }
 
 # ── Pipeline config ───────────────────────────────────────────────────────────
-DETECT_EVERY_N   = 3    # Run YOLO every N frames
-TARGET_FPS       = 25   # Target playback frame rate
+DETECT_EVERY_N   = 1    # Run YOLO every N frames
+TARGET_FPS       = 30   # Target playback frame rate
 DETECTION_WIDTH  = 640  # Downscale width for YOLO inference (faster on 1080p)
 
 # ── Initialize DB ─────────────────────────────────────────────────────────────
@@ -310,6 +311,11 @@ def api_post_zones():
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     cap.release()
+
+    x1_ratio = data.get('x1_ratio', 0.1)
+    y1_ratio = data.get('y1_ratio', 0.1)
+    x2_ratio = data.get('x2_ratio', 0.9)
+    y2_ratio = data.get('y2_ratio', 0.9)
 
     x1 = int(x1_ratio * width)
     y1 = int(y1_ratio * height)
