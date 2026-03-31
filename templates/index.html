@@ -302,8 +302,20 @@
             <div class="flex-1 flex overflow-hidden p-4 gap-4">
                 <!-- Left Sidebar: Zone Management -->
                 <section class="w-1/6 md:w-1/5 h-full flex flex-col gap-4 overflow-y-auto pr-2">
-                    <!-- Camera Group Selector -->
-                    <!-- Multi-cam controls removed for max-frame single layout -->
+                    <!-- CAMERA SWITCHER -->
+                    <div class="mt-4 flex flex-col gap-4">
+                        <div class="p-3 bg-surface-container-low relative overflow-hidden">
+                            <h3 class="font-headline text-amber-500 text-sm mb-2">FEED_SELECT</h3>
+                            <div class="flex flex-col gap-2" id="camera-list">
+                                <button onclick="switchFeed('cam-01', this)" class="feed-tile active-feed w-full py-2 bg-transparent border border-primary/20 text-primary font-label text-[10px] uppercase hover:bg-primary/10 transition-colors">
+                                     [ CAMERA_01 ]
+                                </button>
+                                <button onclick="switchFeed('cam-02', this)" class="feed-tile w-full py-2 bg-transparent border border-primary/20 text-primary font-label text-[10px] uppercase hover:bg-primary/10 transition-colors">
+                                     [ CAMERA_02 ]
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Additional Sidebar Modules -->
                     <div class="mt-4 flex flex-col gap-4">
                         <div class="p-3 bg-surface-container-low relative overflow-hidden">
