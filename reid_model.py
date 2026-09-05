@@ -25,7 +25,7 @@ class ReIDFeatureExtractor:
             device=self.device
         )
 
-        print(f"✅ Fast ReID loaded: {model_name} on {self.device}")
+        print(f"[OK] Fast ReID loaded: {model_name} on {self.device}")
 
     @torch.no_grad()
     def extract(self, crop_bgr):

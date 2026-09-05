@@ -208,6 +208,75 @@
         .feed-tile {
             transition: all 0.2s ease;
         }
+
+        /* ── Unified button system (same theme, cleaner interaction) ── */
+        .btn {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+            user-select: none;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-amber {
+            background: transparent;
+            border-color: rgba(245, 158, 11, 0.25);
+            color: #f59e0b;
+        }
+        .btn-amber:hover { background: rgba(245, 158, 11, 0.12); }
+        .btn-amber.solid { background: #f59e0b; color: #101418; border-color: #f59e0b; }
+        .btn-cyan {
+            background: rgba(34, 211, 238, 0.12);
+            border-color: rgba(34, 211, 238, 0.4);
+            color: #22d3ee;
+            white-space: nowrap;
+        }
+        .btn-cyan:hover { background: rgba(34, 211, 238, 0.25); }
+        .btn-danger {
+            background: #ff938c;
+            color: #68000a;
+            font-weight: 700;
+        }
+        .btn-danger:hover { filter: brightness(1.1); }
+        .btn-danger.armed { background: #93000a; color: #ffdad6; animation: pulse 1.5s infinite; }
+        .btn-ghost {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #a8adb3;
+        }
+        .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); color: #e0e3e8; }
+
+        .sidenav-item { cursor: pointer; }
+        .sidenav-item.sidenav-active {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b !important;
+            border-right: 2px solid #f59e0b;
+        }
+        .top-tab { cursor: pointer; }
+        .top-tab.top-active {
+            color: #f59e0b !important;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 0.25rem;
+        }
+        .mobile-item { cursor: pointer; }
+        .mobile-item.mobile-active { color: #f59e0b !important; }
+
+        #toast {
+            position: fixed;
+            bottom: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 
@@ -222,34 +291,34 @@
             <div class="mb-10 text-amber-500 font-bold">
                 <span class="material-symbols-outlined text-3xl">terminal</span>
             </div>
-            <nav class="flex flex-col gap-2 w-full">
+            <nav class="flex flex-col gap-2 w-full" id="sidenav">
                 <!-- DASHBOARD Active -->
-                <div
-                    class="flex flex-col items-center justify-center bg-amber-500/10 text-amber-500 border-r-2 border-amber-500 w-full py-4 transition-all duration-75 scale-90">
+                <div data-view="dashboard" onclick="setSideNav('dashboard', this)"
+                    class="sidenav-item sidenav-active flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
                     <span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
                     <span class="mt-1">DASHBOARD</span>
                 </div>
                 <!-- CAM_GRID -->
-                <div
-                    class="flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
+                <div data-view="camgrid" onclick="setSideNav('camgrid', this)"
+                    class="sidenav-item flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
                     <span class="material-symbols-outlined" data-icon="videocam">videocam</span>
                     <span class="mt-1">CAM_GRID</span>
                 </div>
                 <!-- LOGS -->
-                <div
-                    class="flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
+                <div data-view="logs" onclick="setSideNav('logs', this)"
+                    class="sidenav-item flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
                     <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
                     <span class="mt-1">LOGS</span>
                 </div>
                 <!-- ZONES -->
-                <div
-                    class="flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
+                <div data-view="zones" onclick="setSideNav('zones', this)"
+                    class="sidenav-item flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
                     <span class="material-symbols-outlined" data-icon="layers">layers</span>
                     <span class="mt-1">ZONES</span>
                 </div>
                 <!-- TELEMETRY -->
-                <div
-                    class="flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
+                <div data-view="data" onclick="setSideNav('data', this)"
+                    class="sidenav-item flex flex-col items-center justify-center text-slate-600 w-full py-4 hover:bg-white/5 hover:text-amber-200">
                     <span class="material-symbols-outlined" data-icon="analytics">analytics</span>
                     <span class="mt-1">DATA</span>
                 </div>
@@ -277,21 +346,55 @@
                         class="text-2xl font-black text-amber-500 tracking-tighter font-['Barlow_Condensed'] uppercase">
                         SYNTHETIC SENTINEL
                     </div>
-                    <nav
+                    <nav id="topnav"
                         class="hidden md:flex items-center gap-6 font-['Barlow_Condensed'] uppercase tracking-widest text-lg">
-                        <a class="text-amber-500 border-b-2 border-amber-500 pb-1 hover:text-amber-400 transition-colors duration-100 steps(4)"
-                            href="#">TACTICAL</a>
-                        <a class="text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)"
-                            href="#">INTEL</a>
-                        <a class="text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)"
-                            href="#">FEEDS</a>
-                        <a class="text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)"
-                            href="#">CONFIG</a>
+                        <a data-tab="tactical" onclick="setTopTab('tactical', this)"
+                            class="top-tab top-active text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)">TACTICAL</a>
+                        <a data-tab="intel" onclick="setTopTab('intel', this)"
+                            class="top-tab text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)">INTEL</a>
+                        <a data-tab="feeds" onclick="setTopTab('feeds', this)"
+                            class="top-tab text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)">FEEDS</a>
+                        <a data-tab="config" onclick="setTopTab('config', this)"
+                            class="top-tab text-slate-500 hover:text-amber-400 transition-colors duration-100 steps(4)">CONFIG</a>
                     </nav>
                 </div>
-                <div class="flex items-center gap-4 text-amber-500">
-                    <span class="material-symbols-outlined cursor-pointer hover:text-amber-300">notifications</span>
-                    <span class="material-symbols-outlined cursor-pointer hover:text-amber-300">settings</span>
+                <div class="flex items-center gap-4 text-amber-500 relative">
+                    <span id="notif-bell" title="Notifications"
+                        class="material-symbols-outlined cursor-pointer hover:text-amber-300"
+                        onclick="toggleNotifications(event)">notifications</span>
+                    <span id="notif-badge"
+                        class="hidden absolute -top-1 left-4 min-w-[16px] h-4 px-1 bg-tertiary-container text-on-tertiary-container font-label text-[9px] flex items-center justify-center">0</span>
+                    <span title="Settings"
+                        class="material-symbols-outlined cursor-pointer hover:text-amber-300"
+                        onclick="toggleSettings(event)">settings</span>
+                    <!-- Notifications dropdown -->
+                    <div id="notif-panel"
+                        class="hidden absolute right-10 top-8 w-72 bg-surface-container-high border border-outline-variant/20 p-2 z-[150] font-label text-[10px]">
+                        <div class="flex justify-between items-center mb-1 px-1">
+                            <span class="text-primary">NOTIFICATIONS</span>
+                            <span class="text-slate-500 cursor-pointer hover:text-on-surface" onclick="toggleNotifications(event)">close</span>
+                        </div>
+                        <div id="notif-list" class="space-y-1 max-h-56 overflow-y-auto"></div>
+                    </div>
+                    <!-- Settings dropdown -->
+                    <div id="settings-panel"
+                        class="hidden absolute right-0 top-8 w-72 bg-surface-container-high border border-outline-variant/20 p-3 z-[150] font-label text-[10px]">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-primary">SYSTEM_CONFIG</span>
+                            <span class="text-slate-500 cursor-pointer hover:text-on-surface" onclick="toggleSettings(event)">close</span>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">TRACKING_MODE</span>
+                                <button id="mode-toggle-btn" class="btn btn-amber" onclick="toggleMode()">QUERY</button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">PIPELINE</span>
+                                <button class="btn btn-ghost" onclick="fetchHealth(true)">HEALTH ✓</button>
+                            </div>
+                            <div id="health-line" class="text-slate-500">—</div>
+                        </div>
+                    </div>
                     <div class="flex flex-col items-end leading-none ml-4 font-['JetBrains_Mono'] text-[10px]">
                         <span class="text-amber-500 font-bold">NODE_042</span>
                         <span class="text-slate-500">SECTOR-7G</span>
@@ -307,14 +410,19 @@
                         <div class="p-3 bg-surface-container-low relative overflow-hidden">
                             <h3 class="font-headline text-amber-500 text-sm mb-2">FEED_SELECT</h3>
                             <div class="flex flex-col gap-2" id="camera-list">
-                                <button onclick="switchFeed('cam-01', this)" class="feed-tile active-feed w-full py-2 bg-transparent border border-primary/20 text-primary font-label text-[10px] uppercase hover:bg-primary/10 transition-colors">
+                                <button onclick="switchFeed('cam-01', this)" class="btn btn-amber feed-tile active-feed w-full">
                                      [ CAMERA_01 ]
                                 </button>
-                                <button onclick="switchFeed('cam-02', this)" class="feed-tile w-full py-2 bg-transparent border border-primary/20 text-primary font-label text-[10px] uppercase hover:bg-primary/10 transition-colors">
+                                <button onclick="switchFeed('cam-02', this)" class="btn btn-amber feed-tile w-full">
                                      [ CAMERA_02 ]
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <!-- CAMERA GROUPS -->
+                    <div class="p-3 bg-surface-container-low relative overflow-hidden">
+                        <h3 class="font-headline text-amber-500 text-sm mb-2">GROUP_FILTER</h3>
+                        <div id="camera-groups-container" class="flex flex-col gap-1"></div>
                     </div>
                     <!-- Additional Sidebar Modules -->
                     <div class="mt-4 flex flex-col gap-4">
@@ -325,7 +433,7 @@
                             <div class="space-y-2" id="zones-list-container">
                             </div>
                             <button id="draw-zone-btn"
-                                class="w-full mt-2 py-2 bg-transparent border border-primary/20 text-primary font-label text-[10px] uppercase hover:bg-primary/10 transition-colors">
+                                class="btn btn-amber w-full mt-2">
                                 [ DRAW_NEW_ZONE ]
                             </button>
                         </div>
@@ -359,8 +467,8 @@
                         <div
                             class="absolute top-6 left-12 right-12 flex justify-between font-label text-[10px] text-primary/80">
                             <div>LAT: 40.7128° N | LON: 74.0060° W</div>
-                            <div class="animate-pulse">REC ● 02:44:19:08</div>
-                            <div>FPS: 60.00 / BW: 4.2 MBPS</div>
+                            <div class="animate-pulse" id="hud-rec">REC ● 00:00:00</div>
+                            <div id="hud-feed">CAM-01 | 30 FPS</div>
                         </div>
                     </div>
                     <!-- Forensic Search Bar -->
@@ -376,8 +484,9 @@
                                 class="bg-transparent border-none outline-none focus:ring-0 text-on-surface font-label text-sm w-full p-1 placeholder-slate-600"
                                 placeholder='e.g. "silver car in Zone B after 6pm"' type="text" />
                             <button id="search-btn" onclick="runSearch()"
-                                class="ml-2 px-3 py-1 bg-cyan-500/20 text-cyan-400 font-label text-[10px] border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors whitespace-nowrap">SEARCH
-                                ▶</button>
+                                class="btn btn-cyan ml-2">SEARCH ▶</button>
+                            <button id="search-clear-btn" onclick="clearSearch()"
+                                class="btn btn-ghost ml-1" title="Clear results">CLR</button>
                         </div>
                         <div id="search-status"
                             class="hidden font-label text-[10px] text-cyan-400 mt-1 flex items-center gap-1">
@@ -403,7 +512,9 @@
                             <span class="text-primary font-label mr-2">&gt;</span>
                             <input id="intent-input"
                                 class="bg-transparent border-none outline-none focus:ring-0 text-on-surface font-label text-sm w-full p-0 placeholder-slate-600"
-                                placeholder="ENTER MISSION PARAMETERS..." type="text" value="" />
+                                placeholder="ENTER MISSION PARAMETERS... (e.g. show persons only)" type="text" value="" />
+                            <button id="intent-run-btn" class="btn btn-amber ml-2" onclick="runIntent()">RUN</button>
+                            <button id="intent-clear-btn" class="btn btn-ghost ml-1" onclick="clearIntent()" title="Reset filter">CLR</button>
                             <div class="w-2 h-5 bg-primary animate-pulse ml-1"></div>
                         </div>
                         <div
@@ -449,8 +560,8 @@
                             <!-- Dynamic logs injected here -->
                         </div>
                     </div>
-                    <button
-                        class="w-full py-4 bg-tertiary-container text-on-tertiary-container font-headline font-bold text-sm uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
+                    <button id="lockdown-btn" onclick="toggleLockdown()"
+                        class="btn btn-danger w-full py-4 font-headline font-bold text-sm tracking-widest">
                         INITIATE LOCKDOWN
                     </button>
                 </section>
@@ -458,29 +569,31 @@
         </main>
     </div>
     <!-- Predicted Component: BottomNavBar (Visible on Mobile) -->
-    <nav
+    <nav id="mobilenav"
         class="fixed bottom-0 left-0 w-full flex justify-around items-center py-3 md:hidden bg-[#101418]/90 backdrop-blur-md border-t border-amber-500/20 shadow-[0_-4px_12px_rgba(245,158,11,0.1)] z-50">
-        <div
-            class="flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
+        <div data-mtab="intent" onclick="mobileNav('intent', this)"
+            class="mobile-item flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
             <span class="material-symbols-outlined" data-icon="terminal">terminal</span>
             <span>INTENT</span>
         </div>
-        <div
-            class="flex flex-col items-center justify-center text-amber-500 scale-110 font-['JetBrains_Mono'] text-[10px] uppercase">
+        <div data-mtab="live" onclick="mobileNav('live', this)"
+            class="mobile-item mobile-active flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
             <span class="material-symbols-outlined" data-icon="sensors">sensors</span>
             <span>LIVE</span>
         </div>
-        <div
-            class="flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
+        <div data-mtab="alerts" onclick="mobileNav('alerts', this)"
+            class="mobile-item flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
             <span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
             <span>ALERTS</span>
         </div>
-        <div
-            class="flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
+        <div data-mtab="data" onclick="mobileNav('data', this)"
+            class="mobile-item flex flex-col items-center justify-center text-slate-500 font-['JetBrains_Mono'] text-[10px] uppercase">
             <span class="material-symbols-outlined" data-icon="database">database</span>
             <span>DATA</span>
         </div>
     </nav>
+    <!-- Toast -->
+    <div id="toast" class="bg-surface-container-highest border border-primary/40 px-4 py-2 font-label text-[11px] text-primary"></div>
     <!-- Video Player Modal -->
     <div id="video-modal" class="modal-overlay hidden" onclick="closeVideoModal(event)">
         <div class="bg-surface-container-low border border-outline-variant/20 p-4 max-w-2xl w-full mx-4"
@@ -514,9 +627,12 @@
             fetch('/api/stats')
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('stat-active').innerText = data.active_objects.toString().padStart(2, '0');
-                    document.getElementById('stat-intrusions').innerText = data.intrusions.toString().padStart(2, '0');
-                    document.getElementById('stat-zones').innerText = data.zones_armed.toString().padStart(2, '0');
+                    const a = document.getElementById('stat-active');
+                    const b = document.getElementById('stat-intrusions');
+                    const c = document.getElementById('stat-zones');
+                    if (a) a.innerText = data.active_objects.toString().padStart(2, '0');
+                    if (b) b.innerText = data.intrusions.toString().padStart(2, '0');
+                    if (c) c.innerText = data.zones_armed.toString().padStart(2, '0');
                 })
                 .catch(console.error);
         }
@@ -525,6 +641,7 @@
                 .then(r => r.json())
                 .then(data => {
                     const container = document.getElementById('threat-log-container');
+                    if (!container) return;
                     container.innerHTML = '';
                     data.forEach(log => {
                         let color = 'bg-surface/30 border-slate-500 text-on-surface/80 opacity-60';
@@ -556,7 +673,7 @@
 
         const input = document.getElementById('intent-input');
         const display = document.getElementById('intent-display');
-        input.addEventListener('keydown', function (event) {
+        if (input && display) input.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 const query = input.value;
                 display.innerText = "PROCESSING...";
@@ -568,6 +685,10 @@
                     .then(data => {
                         display.innerText = JSON.stringify(data);
                         input.value = '';
+                    })
+                    .catch(err => {
+                        display.innerText = "ERROR";
+                        console.error(err);
                     });
             }
         });
@@ -578,6 +699,7 @@
                 .then(r => r.json())
                 .then(data => {
                     const container = document.getElementById('zones-list-container');
+                    if (!container) return;
                     container.innerHTML = '';
                     data.forEach(zone => {
                         const el = `
@@ -590,12 +712,15 @@
                     </div>`;
                         container.innerHTML += el;
                     });
-                });
+                })
+                .catch(console.error);
         }
 
         function deleteZone(id) {
             if (confirm("Delete this restricted zone?")) {
-                fetch('/api/zones/' + id, { method: 'DELETE' }).then(() => fetchZones());
+                fetch('/api/zones/' + id, { method: 'DELETE' })
+                    .then(() => fetchZones())
+                    .catch(console.error);
             }
         }
         fetchZones();
@@ -621,12 +746,13 @@
             isDrawingMode = !isDrawingMode;
             if (isDrawingMode) {
                 drawBtn.innerText = "[ CANCEL DRAWING ]";
-                drawBtn.classList.replace('text-primary', 'text-error');
+                drawBtn.classList.add('solid');
                 canvas.classList.remove('pointer-events-none');
                 resizeCanvas();
+                toast('DRAW MODE: drag on video');
             } else {
                 drawBtn.innerText = "[ DRAW_NEW_ZONE ]";
-                drawBtn.classList.replace('text-error', 'text-primary');
+                drawBtn.classList.remove('solid');
                 canvas.classList.add('pointer-events-none');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
@@ -679,7 +805,7 @@
                     })
                 }).then(() => {
                     fetchZones(); // Refresh the list
-                });
+                }).catch(console.error);
             }
 
             // Reset drawing mode
@@ -692,14 +818,19 @@
 
         function switchFeed(camId, el) {
             activeCamId = camId;
-            document.getElementById('main-video-feed').src = '/video_feed/' + camId;
+            const img = document.getElementById('main-video-feed');
+            if (img) img.src = '/video_feed/' + camId;
             document.querySelectorAll('.feed-tile').forEach(t => t.classList.remove('active-feed'));
             if (el) el.classList.add('active-feed');
+            const hud = document.getElementById('hud-feed');
+            if (hud) hud.innerText = camId.toUpperCase().replace('-', '_') + ' | LIVE';
+            toast('FEED → ' + camId);
         }
 
         function fetchCameraGroups() {
             fetch('/api/camera-groups').then(r => r.json()).then(data => {
                 const c = document.getElementById('camera-groups-container');
+                if (!c) return;
                 let html = '<div class="p-2 bg-surface/50 border border-outline-variant/10 cursor-pointer group-active text-[10px] font-label" onclick="selectGroup(null, this)">ALL CAMERAS</div>';
                 data.forEach(g => {
                     html += `<div class="p-2 bg-surface/50 border border-outline-variant/10 cursor-pointer hover:border-cyan-500/40 text-[10px] font-label transition-colors" onclick="selectGroup('${g.group_id}', this)">
@@ -741,6 +872,7 @@
             const panel = document.getElementById('search-results-panel');
             const header = document.getElementById('search-results-header');
             const grid = document.getElementById('search-results-grid');
+            if (!panel || !header || !grid) return;
             panel.classList.remove('hidden');
 
             // Filter chips
@@ -829,6 +961,206 @@
             if (e && e.target !== document.getElementById('timeline-modal')) return;
             document.getElementById('timeline-modal').classList.add('hidden');
         }
+
+        // ── UNIFIED UI WIRING (same theme) ──
+        let toastTimer = null;
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.innerText = msg;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        function setSideNav(view, el) {
+            document.querySelectorAll('#sidenav .sidenav-item').forEach(d => d.classList.remove('sidenav-active'));
+            if (el) el.classList.add('sidenav-active');
+            if (view === 'camgrid') {
+                toast('CAM_GRID: use FEED_SELECT to switch cams');
+                document.getElementById('main-video-feed').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (view === 'logs') {
+                const c = document.getElementById('threat-log-container');
+                if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                fetchLogs();
+                toast('THREAT_LOG refreshed');
+            } else if (view === 'zones') {
+                const b = document.getElementById('draw-zone-btn');
+                if (b) { b.scrollIntoView({ behavior: 'smooth', block: 'center' }); b.focus(); }
+                toast('ZONE_MODE: draw on video canvas');
+            } else if (view === 'data') {
+                fetchStats(); fetchHealth(false);
+                toast('TELEMETRY refreshed');
+            } else {
+                toast('DASHBOARD');
+            }
+        }
+
+        function setTopTab(tab, el) {
+            document.querySelectorAll('#topnav .top-tab').forEach(a => a.classList.remove('top-active'));
+            if (el) el.classList.add('top-active');
+            if (tab === 'intel') {
+                const s = document.getElementById('search-input');
+                if (s) { s.scrollIntoView({ behavior: 'smooth', block: 'center' }); s.focus(); }
+            } else if (tab === 'feeds') {
+                document.getElementById('main-video-feed').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (tab === 'config') {
+                toggleSettings(event);
+            }
+            toast('MODE → ' + tab.toUpperCase());
+        }
+
+        function mobileNav(tab, el) {
+            document.querySelectorAll('#mobilenav .mobile-item').forEach(d => d.classList.remove('mobile-active'));
+            if (el) el.classList.add('mobile-active');
+            if (tab === 'intent') {
+                const i = document.getElementById('intent-input');
+                if (i) { i.scrollIntoView({ behavior: 'smooth', block: 'center' }); i.focus(); }
+            } else if (tab === 'alerts') {
+                const c = document.getElementById('threat-log-container');
+                if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                fetchLogs();
+            } else if (tab === 'data') {
+                fetchStats();
+            }
+            toast(tab.toUpperCase());
+        }
+
+        function toggleNotifications(e) {
+            if (e) e.stopPropagation();
+            const p = document.getElementById('notif-panel');
+            const s = document.getElementById('settings-panel');
+            if (s) s.classList.add('hidden');
+            if (!p) return;
+            p.classList.toggle('hidden');
+            if (!p.classList.contains('hidden')) fetchNotifications();
+        }
+
+        function fetchNotifications() {
+            fetch('/api/notifications').then(r => r.json()).then(data => {
+                const badge = document.getElementById('notif-badge');
+                if (badge) {
+                    if (data.count > 0) { badge.innerText = data.count; badge.classList.remove('hidden'); }
+                    else badge.classList.add('hidden');
+                }
+                const list = document.getElementById('notif-list');
+                if (!list) return;
+                if (!data.items || !data.items.length) {
+                    list.innerHTML = '<div class="text-slate-500 px-1">No alerts. System nominal.</div>';
+                    return;
+                }
+                list.innerHTML = data.items.map(n =>
+                    `<div class="p-1.5 bg-surface/50 border-l-2 border-tertiary"><div class="text-on-surface font-bold">ID_${n.track_id}: ${n.event_type}</div><div class="text-slate-500">${n.timestamp ? n.timestamp.substring(11, 19) : ''} · ${n.detail || ''}</div></div>`
+                ).join('');
+            }).catch(console.error);
+        }
+
+        function toggleSettings(e) {
+            if (e) e.stopPropagation();
+            const s = document.getElementById('settings-panel');
+            const p = document.getElementById('notif-panel');
+            if (p) p.classList.add('hidden');
+            if (!s) return;
+            s.classList.toggle('hidden');
+            if (!s.classList.contains('hidden')) { fetchMode(); fetchHealth(false); }
+        }
+        document.addEventListener('click', (e) => {
+            const np = document.getElementById('notif-panel');
+            const sp = document.getElementById('settings-panel');
+            if (np && !np.classList.contains('hidden') && !np.contains(e.target) && e.target.id !== 'notif-bell') np.classList.add('hidden');
+            if (sp && !sp.classList.contains('hidden') && !sp.contains(e.target)) sp.classList.add('hidden');
+        });
+
+        function fetchMode() {
+            fetch('/api/mode').then(r => r.json()).then(d => {
+                const b = document.getElementById('mode-toggle-btn');
+                if (b) b.innerText = (d.mode || 'query').toUpperCase();
+                refreshLockdownUI(!!d.lockdown);
+            }).catch(console.error);
+        }
+        function toggleMode() {
+            const b = document.getElementById('mode-toggle-btn');
+            const next = (b && b.innerText === 'QUERY') ? 'full' : 'query';
+            fetch('/api/mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: next }) })
+                .then(r => r.json()).then(d => {
+                    if (b) b.innerText = (d.mode || next).toUpperCase();
+                    toast('TRACKING_MODE → ' + (d.mode || next).toUpperCase());
+                }).catch(console.error);
+        }
+
+        function fetchHealth(loud) {
+            fetch('/api/health').then(r => r.json()).then(d => {
+                const line = document.getElementById('health-line');
+                const cams = Object.entries(d.cameras || {}).map(([k, v]) => k + ':' + (v ? 'LIVE' : 'DOWN')).join(' ');
+                if (line) line.innerText = `MODE ${d.mode} · LOCK ${d.lockdown ? 'ON' : 'OFF'} · ${cams}`;
+                if (loud) toast('HEALTH: ' + cams);
+            }).catch(console.error);
+        }
+
+        let lockdownOn = false;
+        function refreshLockdownUI(on) {
+            lockdownOn = !!on;
+            const b = document.getElementById('lockdown-btn');
+            if (!b) return;
+            b.classList.toggle('armed', lockdownOn);
+            b.innerText = lockdownOn ? 'LOCKDOWN ACTIVE — TAP TO RELEASE' : 'INITIATE LOCKDOWN';
+        }
+        function toggleLockdown() {
+            fetch('/api/lockdown', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !lockdownOn }) })
+                .then(r => r.json()).then(d => {
+                    refreshLockdownUI(d.lockdown);
+                    toast(d.lockdown ? 'LOCKDOWN ENGAGED — clips recording' : 'LOCKDOWN RELEASED');
+                    fetchLogs(); fetchStats();
+                }).catch(err => { toast('LOCKDOWN ERROR'); console.error(err); });
+        }
+
+        function runIntent() {
+            const inp = document.getElementById('intent-input');
+            const disp = document.getElementById('intent-display');
+            if (!inp || !disp) return;
+            const query = inp.value.trim();
+            if (!query) { toast('Enter mission parameters first'); return; }
+            disp.innerText = 'PROCESSING...';
+            fetch('/api/intent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query }) })
+                .then(r => r.json()).then(data => {
+                    disp.innerText = JSON.stringify(data);
+                    inp.value = '';
+                    toast('INTENT APPLIED');
+                }).catch(err => { disp.innerText = 'ERROR'; console.error(err); });
+        }
+        function clearIntent() {
+            const inp = document.getElementById('intent-input');
+            const disp = document.getElementById('intent-display');
+            if (inp) inp.value = '';
+            fetch('/api/mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'full' }) })
+                .then(r => r.json()).then(d => {
+                    if (disp) disp.innerText = 'READY (FULL MODE)';
+                    const b = document.getElementById('mode-toggle-btn');
+                    if (b) b.innerText = 'FULL';
+                    toast('FILTER CLEARED — FULL MODE');
+                }).catch(console.error);
+        }
+        function clearSearch() {
+            const inp = document.getElementById('search-input');
+            const panel = document.getElementById('search-results-panel');
+            if (inp) inp.value = '';
+            if (panel) panel.classList.add('hidden');
+            toast('SEARCH CLEARED');
+        }
+
+        // Live REC clock
+        const bootTime = Date.now();
+        setInterval(() => {
+            const el = document.getElementById('hud-rec');
+            if (!el) return;
+            const s = Math.floor((Date.now() - bootTime) / 1000);
+            const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+            const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+            const ss = String(s % 60).padStart(2, '0');
+            el.innerText = 'REC ● ' + hh + ':' + mm + ':' + ss;
+        }, 1000);
+        fetchMode(); fetchNotifications();
+        setInterval(fetchNotifications, 10000);
     </script>
 </body>
 

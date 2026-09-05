@@ -10,7 +10,7 @@ class LLMParser:
     def __init__(self):
         self.api_key = os.environ.get("GROQ_API_KEY")
         if not self.api_key:
-             print("⚠ Warning: GROQ_API_KEY not found in environment.")
+             print("[Warn] GROQ_API_KEY not found in environment.")
         self.client = Groq(api_key=self.api_key)
 
     def parse(self, query):

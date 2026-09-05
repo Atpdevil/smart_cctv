@@ -35,9 +35,9 @@ CLASS_NAMES = {
 }
 
 # ── Pipeline config ───────────────────────────────────────────────────────────
-DETECT_EVERY_N   = 1    # Run YOLO every N frames
-TARGET_FPS       = 30   # Target playback frame rate
-DETECTION_WIDTH  = 640  # Downscale width for YOLO inference (faster on 1080p)
+DETECT_EVERY_N   = 1    # Run YOLO every frame (max detection accuracy)
+TARGET_FPS       = 30   # Target playback frame rate (match video native)
+DETECTION_WIDTH  = 640  # Downscale width for YOLO inference
 
 # ── Initialize DB ─────────────────────────────────────────────────────────────
 init_db()
@@ -48,6 +48,9 @@ mode_manager   = ModeManager()
 clip_recorder  = ClipRecorder()
 global_tracker = GlobalTracker()
 mode_manager.set_mode("query")
+
+# ── System state (lockdown / mode) ─────────────────────────────────────────────
+system_state = {"lockdown": False}
 
 # ── Shared YOLO model (loaded once, shared across camera threads) ─────────────
 shared_model = YOLO("yolov8n.pt")
@@ -127,8 +130,8 @@ def camera_worker(cam_id):
     last_tracked_objects = []
 
     print(
-        f"🎥 Pipeline started for {cam_id} ({pipeline['label']}) "
-        f"@ {video_fps:.1f}fps | {full_w}x{full_h} → YOLO@{DETECTION_WIDTH}x{small_h}"
+        f"[Pipeline] Started for {cam_id} ({pipeline['label']}) "
+        f"@ {video_fps:.1f}fps | {full_w}x{full_h} -> YOLO@{DETECTION_WIDTH}x{small_h}"
     )
 
     while True:
@@ -215,7 +218,7 @@ def camera_worker(cam_id):
         clip_recorder.push_frame(cam_id, frame)
 
         # ── Store the annotated frame (thread-safe) ────────────────────────────
-        ret_enc, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        ret_enc, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
         if ret_enc:
             with frame_lock:
                 pipeline["latest_frame"] = buffer.tobytes()
@@ -235,6 +238,7 @@ def generate_frames(cam_id):
         return
 
     frame_lock = pipeline["frame_lock"]
+    frame_interval = 1.0 / TARGET_FPS
 
     while True:
         with frame_lock:
@@ -248,7 +252,7 @@ def generate_frames(cam_id):
             b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n'
         )
-        time.sleep(0.033)  # ~30 fps to browser
+        time.sleep(frame_interval)
 
 
 # ── Flask routes ──────────────────────────────────────────────────────────────
@@ -348,6 +352,69 @@ def api_camera_groups():
     return jsonify(camera_groups.get_all_groups())
 
 
+# ── System: mode / lockdown / health / notifications ──────────────────────────
+@app.route('/api/mode', methods=['GET'])
+def api_get_mode():
+    return jsonify({"mode": mode_manager.mode, "lockdown": system_state["lockdown"]})
+
+
+@app.route('/api/mode', methods=['POST'])
+def api_set_mode():
+    data = request.json or {}
+    mode = data.get('mode', 'query')
+    if mode in ("full", "query"):
+        mode_manager.set_mode(mode)
+    return jsonify({"mode": mode_manager.mode, "lockdown": system_state["lockdown"]})
+
+
+@app.route('/api/lockdown', methods=['GET'])
+def api_get_lockdown():
+    return jsonify({"lockdown": system_state["lockdown"]})
+
+
+@app.route('/api/lockdown', methods=['POST'])
+def api_set_lockdown():
+    data = request.json or {}
+    # Accept {"active": bool} or {"lockdown": bool}; toggle if absent
+    if "active" in data:
+        active = bool(data["active"])
+    elif "lockdown" in data:
+        active = bool(data["lockdown"])
+    else:
+        active = not system_state["lockdown"]
+    system_state["lockdown"] = active
+    if active:
+        # Snapshot every camera pipeline when lockdown engages
+        for cam_id in CAMERAS:
+            try:
+                clip_recorder.trigger_clip(cam_id, "lockdown", 0, "all-zones")
+            except Exception:
+                pass
+    return jsonify({"lockdown": system_state["lockdown"]})
+
+
+@app.route('/api/notifications')
+def api_notifications():
+    items = get_recent_intrusions(limit=5)
+    return jsonify({"count": len(items), "items": items})
+
+
+@app.route('/api/health')
+def api_health():
+    alive = {cid: (p.get("latest_frame") is not None) for cid, p in cam_pipelines.items()}
+    return jsonify({
+        "status": "ok",
+        "mode": mode_manager.mode,
+        "lockdown": system_state["lockdown"],
+        "cameras": alive,
+        "config": {
+            "detect_every_n": DETECT_EVERY_N,
+            "target_fps": TARGET_FPS,
+            "detection_width": DETECTION_WIDTH,
+        },
+    })
+
+
 # ── Forensic Search ───────────────────────────────────────────────────────────
 @app.route('/api/search', methods=['POST'])
 def api_search():
@@ -439,7 +506,7 @@ def start_pipelines():
     for cam_id in CAMERAS:
         t = threading.Thread(target=camera_worker, args=(cam_id,), daemon=True)
         t.start()
-        print(f"✅ Started background pipeline for {cam_id}")
+        print(f"[OK] Started background pipeline for {cam_id}")
 
 
 if __name__ == "__main__":

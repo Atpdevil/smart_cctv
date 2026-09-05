@@ -243,7 +243,7 @@ class GlobalTracker:
 
         # ── Confident match found ────────────────────────────────────────────
         if best_gid is not None:
-            print(f"🔗 ReID Match  → gid={best_gid}  score={best_score:.3f}")
+            print(f"[ReID] Match -> gid={best_gid} score={best_score:.3f}")
             return best_gid
 
         # ── Borderline match — use color histogram to confirm ────────────────
@@ -253,14 +253,14 @@ class GlobalTracker:
 
             if color_sim >= COLOR_CONFIRM_SCORE:
                 print(
-                    f"🎨 ReID ColorAssist → gid={borderline_gid}  "
-                    f"reid={borderline_score:.3f}  color={color_sim:.3f}"
+                    f"[ReID] ColorAssist -> gid={borderline_gid} "
+                    f"reid={borderline_score:.3f} color={color_sim:.3f}"
                 )
                 return borderline_gid
             else:
                 print(
-                    f"❌ ReID Borderline rejected → gid={borderline_gid}  "
-                    f"reid={borderline_score:.3f}  color={color_sim:.3f} (too low)"
+                    f"[ReID] Borderline rejected -> gid={borderline_gid} "
+                    f"reid={borderline_score:.3f} color={color_sim:.3f} (too low)"
                 )
 
         return None

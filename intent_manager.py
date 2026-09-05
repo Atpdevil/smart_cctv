@@ -28,7 +28,7 @@ class IntentManager:
 
     def set_intent(self, query):
         self.intent = self.parser.parse(query)
-        print("🧠 Parsed Intent:", self.intent)
+        print("[Intent] Parsed Intent:", self.intent)
 
     def match(self, cls_id):
         # 1. Check if LLM directly provided cls_id list
@@ -100,5 +100,5 @@ Respond with ONLY valid JSON, no markdown, no explanation."""
 
             return filters
         except Exception as e:
-            print(f"⚠ parse_search_query error: {e}")
+            print(f"[Warn] parse_search_query error: {e}")
             return {}

@@ -73,7 +73,7 @@ class ZoneManager:
             if zone["x1"] < center_x < zone["x2"] and zone["y1"] < center_y < zone["y2"]:
                 key = (track_id, zone["id"])
                 if key not in self.active_intrusions:
-                    print(f"🚨 Intrusion by ID {track_id} in {zone['name']}")
+                    print(f"[ALERT] Intrusion by ID {track_id} in {zone['name']}")
                     log_intrusion(track_id, self.camera_id, zone["id"], video_file, video_time)
                     self.active_intrusions.add(key)
                     result = {"triggered": True, "zone_name": zone["name"]}

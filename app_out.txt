@@ -1,0 +1,81 @@
+D:\Projects\smart_cctv\torchreid\metrics\rank.py:11: UserWarning: Cython evaluation (very fast so highly recommended) is unavailable, now use python evaluation.
+  warnings.warn(
+INIT_DB CALLED
+Successfully loaded imagenet pretrained weights from "C:\Users\gokul/.cache\torch\checkpoints\osnet_ain_x1_0_imagenet.pth"
+** The following layers are discarded due to unmatched keys or layer size: ['classifier.weight', 'classifier.bias']
+Model: osnet_ain_x1_0
+- params: 2,193,616
+- flops: 978,878,352
+[OK] Fast ReID loaded: osnet_ain_x1_0 on cpu
+D:\Projects\smart_cctv\tracker.py:8: FutureWarning: The `ByteTrack` was deprecated since v0.28.0. It will be removed in v0.31.0.
+  self.tracker = sv.ByteTrack()
+[OK] Started background pipeline for cam-01
+[OK] Started background pipeline for cam-02
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.29.100:5000
+Press CTRL+C to quit
+[Pipeline] Started for cam-01 (CAMERA_01) @ 30.0fps | 1920x1080 -> YOLO@480x270
+[Pipeline] Started for cam-02 (CAMERA_02) @ 30.0fps | 1920x1080 -> YOLO@480x270
+[ReID] Match -> gid=9 score=0.695
+[ReID] Match -> gid=6 score=0.663
+[ReID] Match -> gid=9 score=0.801
+[ReID] Borderline rejected -> gid=7 reid=0.519 color=0.551 (too low)
+[ReID] Match -> gid=4 score=0.628
+[ReID] Match -> gid=8 score=0.690
+[ReID] Match -> gid=4 score=0.800
+[ReID] Match -> gid=8 score=0.731
+[ReID] Match -> gid=10 score=0.687
+[ReID] Match -> gid=8 score=0.758
+[ReID] Match -> gid=7 score=0.654
+[ReID] Match -> gid=4 score=0.705
+[ReID] Match -> gid=6 score=0.820
+[ReID] Match -> gid=10 score=0.738
+[ReID] Match -> gid=2 score=0.857
+[ReID] Match -> gid=8 score=0.696
+[ReID] Match -> gid=4 score=0.681
+[ReID] Match -> gid=9 score=0.758
+[ReID] Borderline rejected -> gid=10 reid=0.546 color=0.426 (too low)
+[ReID] Match -> gid=9 score=0.726
+[ReID] Borderline rejected -> gid=7 reid=0.573 color=0.439 (too low)
+[ReID] Match -> gid=10 score=0.823
+[ReID] Match -> gid=10 score=0.820
+[ReID] Match -> gid=7 score=0.649
+[ReID] Match -> gid=4 score=0.748
+[ReID] Match -> gid=10 score=0.619
+[ReID] Match -> gid=6 score=0.776
+[ReID] Match -> gid=9 score=0.612
+[ReID] Match -> gid=8 score=0.714
+[ReID] Match -> gid=7 score=0.665
+[ReID] Borderline rejected -> gid=2 reid=0.524 color=0.272 (too low)
+[ReID] Match -> gid=7 score=0.654
+[ReID] Match -> gid=8 score=0.843
+[ReID] Match -> gid=8 score=0.724
+[ReID] Match -> gid=9 score=0.747
+[ReID] Match -> gid=6 score=0.828
+[ReID] Match -> gid=9 score=0.829
+[ReID] Match -> gid=9 score=0.747
+[ReID] Match -> gid=4 score=0.724
+[ReID] Match -> gid=5 score=0.767
+[ReID] Match -> gid=5 score=0.890
+[ReID] Borderline rejected -> gid=2 reid=0.576 color=0.286 (too low)
+[ReID] Match -> gid=4 score=0.716
+[ReID] Borderline rejected -> gid=9 reid=0.443 color=0.401 (too low)
+[ReID] Match -> gid=1 score=0.805
+[ReID] Match -> gid=6 score=0.776
+[ReID] Match -> gid=9 score=0.687
+[ReID] Match -> gid=18 score=0.692
+[ReID] Match -> gid=18 score=0.665
+[ReID] Match -> gid=7 score=0.715
+[ReID] Match -> gid=6 score=0.655
+[ReID] Match -> gid=9 score=0.598
+[ReID] Match -> gid=1 score=0.602
+[ReID] Match -> gid=9 score=0.770
+[ReID] Match -> gid=5 score=0.596
+[ReID] Match -> gid=18 score=0.590
+[ReID] Match -> gid=2 score=0.587
+[ReID] Match -> gid=9 score=0.694
+[ReID] Match -> gid=9 score=0.743

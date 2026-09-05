@@ -86,7 +86,7 @@ class ClipRecorder:
             if 0 <= mid < len(all_frames):
                 cv2.imwrite(thumb_path, all_frames[mid])
 
-            print(f"📹 Clip saved: {clip_path} | Thumb: {thumb_path}")
+            print(f"[Clip] Saved: {clip_path} | Thumb: {thumb_path}")
 
             # 4. Update detection_index if available
             try:
@@ -96,7 +96,7 @@ class ClipRecorder:
                 pass
 
         except Exception as e:
-            print(f"❌ ClipRecorder error: {e}")
+            print(f"[Error] ClipRecorder error: {e}")
 
     def get_clip_path(self, cam_id, timestamp):
         """Returns clip path for a given cam_id and timestamp string, or None."""

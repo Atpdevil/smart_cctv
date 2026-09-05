@@ -6,6 +6,7 @@ torchreid==0.2.5
 gdown
 torch>=2.5.0
 torchvision
+tensorboard
 
 # LLM support
 openai

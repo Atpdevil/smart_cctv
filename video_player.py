@@ -19,7 +19,7 @@ def play_event(video_file, video_time, target_id):
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
 
-    print(f"🎯 Jumping to {video_time:.2f}s (Target ID: {target_id})")
+    print(f"[Info] Jumping to {video_time:.2f}s (Target ID: {target_id})")
 
     while True:
 

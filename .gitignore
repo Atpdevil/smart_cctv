@@ -9,6 +9,10 @@ ENV/
 
 # Database
 cctv.db
+*.db-journal
+
+# Build / Sources
+torchreid-source/
 
 
 # Media

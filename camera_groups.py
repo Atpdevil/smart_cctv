@@ -7,11 +7,11 @@ _GROUPS = []
 def _load():
     global _GROUPS
     try:
-        with open(_GROUPS_FILE, "r") as f:
+        with open(_GROUPS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             _GROUPS = data.get("groups", [])
     except Exception as e:
-        print(f"⚠ camera_groups: could not load {_GROUPS_FILE}: {e}")
+        print(f"[Warn] camera_groups: could not load {_GROUPS_FILE}: {e}")
         _GROUPS = []
 
 _load()
