@@ -1,12 +1,3 @@
----
-title: Smart CCTV
-emoji: 📹
-colorFrom: gray
-colorTo: green
-sdk: docker
-app_port: 7860
----
-
 # SYNTHETIC SENTINEL — Mission Control
 
 AI-powered multi-camera surveillance: live MJPEG dashboard, YOLOv8 detection,

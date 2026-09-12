@@ -27,8 +27,7 @@ RUN mkdir -p snapshots clips thumbs
 RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
 RUN python -c "import torchreid; torchreid.utils.FeatureExtractor(model_name='osnet_ain_x1_0', device='cpu')"
 
-# ── Hugging Face Spaces uses port 7860 ───────────────────────────────────────
-ENV PORT=7860
-EXPOSE 7860
+# ── Railway sets PORT env var automatically ───────────────────────────────────
+EXPOSE ${PORT:-5000}
 
 CMD ["python", "app.py"]
