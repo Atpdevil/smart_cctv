@@ -24,11 +24,13 @@ COPY . .
 # ── Create directories for runtime artifacts ──────────────────────────────────
 RUN mkdir -p snapshots clips thumbs
 
+# ── Pre-download YOLO weights at build time (not at runtime) ──────────────────
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+
 # ── Expose port (Render sets PORT env var, default 5000) ──────────────────────
 EXPOSE 5000
 
-# ── Start with gunicorn (production WSGI server) ─────────────────────────────
-#    - preload so start_pipelines() runs once before forking
-#    - single worker since app uses background threads for camera pipelines
-#    - increased timeout for heavy model loading at startup
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 4 --timeout 120 --preload 'app:app'"]
+# ── Run directly with Flask (threaded) ────────────────────────────────────────
+#    Gunicorn's worker timeout kills the process during slow model loading.
+#    Flask threaded mode is fine here — single process with background threads.
+CMD ["sh", "-c", "python app.py"]
