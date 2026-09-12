@@ -10,9 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ── Working directory ─────────────────────────────────────────────────────────
 WORKDIR /app
 
-# ── Install Python dependencies first (Docker layer caching) ─────────────────
+# ── Install CPU-only PyTorch (no CUDA = saves ~1.5 GB) ───────────────────────
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir gdown && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir gunicorn
 
