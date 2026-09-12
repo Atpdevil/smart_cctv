@@ -509,6 +509,8 @@ def start_pipelines():
         print(f"[OK] Started background pipeline for {cam_id}")
 
 
+# Start pipelines on module load (needed for gunicorn/Render)
+start_pipelines()
+
 if __name__ == "__main__":
-    start_pipelines()
     app.run(host='0.0.0.0', port=5000, threaded=True)

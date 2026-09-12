@@ -1,0 +1,30 @@
+.git
+.gitignore
+.venv
+venv
+ENV
+__pycache__
+*.pyc
+*.pyo
+
+# Local artifacts
+snapshots/
+clips/
+thumbs/
+*.db
+*.db-journal
+app_log.txt
+app_out.txt
+app_err.txt
+
+# Docs
+README.md
+PROJECT_EXPLANATION.md
+implementation_plan.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel (if any leftover)
+.vercel

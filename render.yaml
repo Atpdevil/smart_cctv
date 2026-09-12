@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: smart-cctv
+    runtime: docker
+    repo: https://github.com/Atpdevil/smart_cctv
+    branch: main
+    plan: starter  # $7/mo — 1 GB RAM, persistent. Free tier works too but sleeps after 15 min inactivity.
+
+    # ── Environment variables ──────────────────────────────────────────────────
+    envVars:
+      - key: PYTHON_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false   # You'll set this manually in the Render dashboard
+      - key: GROQ_API_KEY
+        sync: false   # You'll set this manually in the Render dashboard
+
+    # ── Health check ───────────────────────────────────────────────────────────
+    healthCheckPath: /
+
+    # ── Persistent disk for DB, clips, snapshots ───────────────────────────────
+    disk:
+      name: cctv-data
+      mountPath: /app/data
+      sizeGB: 1
