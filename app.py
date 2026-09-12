@@ -35,9 +35,9 @@ CLASS_NAMES = {
 }
 
 # ── Pipeline config ───────────────────────────────────────────────────────────
-DETECT_EVERY_N   = 1    # Run YOLO every frame (max detection accuracy)
-TARGET_FPS       = 30   # Target playback frame rate (match video native)
-DETECTION_WIDTH  = 640  # Downscale width for YOLO inference
+DETECT_EVERY_N   = 3    # Run YOLO every 3rd frame (saves CPU/memory)
+TARGET_FPS       = 15   # Target playback frame rate
+DETECTION_WIDTH  = 480  # Downscale width for YOLO inference
 
 # ── Initialize DB ─────────────────────────────────────────────────────────────
 init_db()

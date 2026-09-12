@@ -2,9 +2,6 @@ opencv-python-headless
 ultralytics
 supervision
 numpy
-# torch and torchvision are installed separately in Dockerfile (CPU-only)
-torchreid==0.2.5
-tensorboard
 
 # LLM support
 openai

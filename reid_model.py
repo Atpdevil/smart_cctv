@@ -1,83 +1,103 @@
 import cv2
 import numpy as np
-import torch
-import threading
-import torchreid
 
 
 class ReIDFeatureExtractor:
     """
-    Advanced Fast ReID feature extractor using OSNet-AIN x1.0
-    (Omni-Scale Network with Attention Instance Normalization).
-    
-    This model explicitly learns cross-domain/cross-camera invariant features,
-    making it much more robust against lighting and viewing angle changes.
+    Lightweight ReID feature extractor based on spatial color histograms.
+
+    Instead of a neural network, this builds a descriptor from HSV color
+    histograms computed on the top / middle / bottom thirds of a person
+    crop.  Each region gets a hue histogram and a saturation histogram,
+    capturing clothing-color information with spatial layout awareness
+    (e.g. shirt vs. trousers).
+
+    The final feature vector is the L2-normalized concatenation of all
+    six histograms (3 regions × 2 channels).
+
+    This uses only OpenCV and NumPy — no PyTorch, no torchreid — so it
+    fits within tight memory budgets (< 512 MB).
     """
 
-    def __init__(self, model_name='osnet_ain_x1_0', device=None):
-        if device is None:
-            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        else:
-            self.device = device
+    # Histogram parameters
+    HUE_BINS = 36          # 0-180 → 5° per bin
+    SAT_BINS = 32          # 0-256 → 8 levels per bin
+    REGIONS  = 3           # top / middle / bottom
 
-        self.extractor = torchreid.utils.FeatureExtractor(
-            model_name=model_name,
-            device=self.device
-        )
+    # Total feature dimensionality: 3 × (36 + 32) = 204
+    FEATURE_DIM = REGIONS * (HUE_BINS + SAT_BINS)
 
-        print(f"[OK] Fast ReID loaded: {model_name} on {self.device}")
+    def __init__(self, model_name=None, device=None):
+        """
+        Parameters are accepted for API-compatibility with the previous
+        torchreid-based extractor but are silently ignored.
+        """
+        print("[OK] Lightweight ReID loaded (color histogram)")
 
-    @torch.no_grad()
+    # ── Single-crop extraction ──────────────────────────────────────────────
     def extract(self, crop_bgr):
-        """Extract a 512-dim L2-normalized feature vector from a BGR person crop."""
+        """Extract an L2-normalized feature vector from a BGR person crop.
+
+        Returns
+        -------
+        np.ndarray of shape (FEATURE_DIM,) or None if the crop is invalid.
+        """
         if crop_bgr is None or crop_bgr.size == 0:
             return None
-        
+
         h, w = crop_bgr.shape[:2]
         if h < 20 or w < 10:
             return None
 
-        # Torchreid FeatureExtractor natively handles resizing, normalization, and tensor conversion
-        # It expects RGB numpy arrays
-        crop_rgb = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2RGB)
-        
         try:
-            # Native extractor output: (1, 512) tensor
-            features = self.extractor([crop_rgb]).cpu().numpy()[0]
-            norm = np.linalg.norm(features)
-            if norm > 0:
-                features = features / norm
-            return features
+            hsv = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2HSV)
         except Exception:
             return None
 
-    @torch.no_grad()
+        # Split into top / middle / bottom thirds
+        third = max(h // self.REGIONS, 1)
+        parts = [
+            hsv[0          : third,     :],   # top
+            hsv[third      : 2 * third, :],   # middle
+            hsv[2 * third  : h,         :],   # bottom
+        ]
+
+        histograms = []
+        for part in parts:
+            if part.size == 0:
+                histograms.append(np.zeros(self.HUE_BINS + self.SAT_BINS,
+                                           dtype=np.float32))
+                continue
+
+            # Hue histogram (channel 0, range 0-180)
+            h_hist = cv2.calcHist([part], [0], None,
+                                  [self.HUE_BINS], [0, 180])
+            cv2.normalize(h_hist, h_hist)
+
+            # Saturation histogram (channel 1, range 0-256)
+            s_hist = cv2.calcHist([part], [1], None,
+                                  [self.SAT_BINS], [0, 256])
+            cv2.normalize(s_hist, s_hist)
+
+            histograms.append(
+                np.concatenate([h_hist.flatten(), s_hist.flatten()])
+            )
+
+        feature = np.concatenate(histograms).astype(np.float32)
+
+        # L2-normalize the full vector
+        norm = np.linalg.norm(feature)
+        if norm > 0:
+            feature = feature / norm
+
+        return feature
+
+    # ── Batch extraction ────────────────────────────────────────────────────
     def extract_batch(self, crops_bgr):
-        """Extract features for multiple crops in one forward pass."""
-        valid_crops = []
-        valid_indices = []
+        """Extract features for multiple crops.
 
-        for i, crop in enumerate(crops_bgr):
-            if crop is not None and crop.size > 0:
-                h, w = crop.shape[:2]
-                if h >= 20 and w >= 10:
-                    valid_crops.append(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
-                    valid_indices.append(i)
-
-        results = [None] * len(crops_bgr)
-        if not valid_crops:
-            return results
-
-        try:
-            # Native extractor output: (N, 512) tensor
-            features = self.extractor(valid_crops).cpu().numpy()
-            norms = np.linalg.norm(features, axis=1, keepdims=True)
-            norms[norms == 0] = 1
-            features = features / norms
-            
-            for idx, feat in zip(valid_indices, features):
-                results[idx] = feat
-        except Exception:
-            pass
-
-        return results
+        Returns
+        -------
+        list[np.ndarray | None] — one entry per input crop.
+        """
+        return [self.extract(crop) for crop in crops_bgr]

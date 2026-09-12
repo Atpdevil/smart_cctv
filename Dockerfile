@@ -10,12 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ── Working directory ─────────────────────────────────────────────────────────
 WORKDIR /app
 
-# ── Install CPU-only PyTorch (no CUDA = saves ~1.5 GB) ───────────────────────
-COPY requirements.txt .
+# ── Install CPU-only PyTorch first (saves ~1.5 GB vs CUDA version) ────────────
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir gdown && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# ── Install remaining dependencies ───────────────────────────────────────────
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Copy application code ────────────────────────────────────────────────────
 COPY . .
@@ -23,9 +24,8 @@ COPY . .
 # ── Create directories for runtime artifacts ──────────────────────────────────
 RUN mkdir -p snapshots clips thumbs
 
-# ── Pre-download model weights at build time (not at runtime) ─────────────────
+# ── Pre-download YOLO weights at build time ───────────────────────────────────
 RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
-RUN python -c "import torchreid; torchreid.utils.FeatureExtractor(model_name='osnet_ain_x1_0', device='cpu')"
 
 # ── Railway sets PORT env var automatically ───────────────────────────────────
 EXPOSE ${PORT:-5000}

@@ -13,6 +13,7 @@ cctv.db
 
 # Build / Sources
 torchreid-source/
+torchreid/
 
 
 # Media
