@@ -15,8 +15,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir gdown && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir gunicorn
+    pip install --no-cache-dir -r requirements.txt
 
 # ── Copy application code ────────────────────────────────────────────────────
 COPY . .
@@ -24,13 +23,12 @@ COPY . .
 # ── Create directories for runtime artifacts ──────────────────────────────────
 RUN mkdir -p snapshots clips thumbs
 
-# ── Pre-download YOLO weights at build time (not at runtime) ──────────────────
+# ── Pre-download model weights at build time (not at runtime) ─────────────────
 RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+RUN python -c "import torchreid; torchreid.utils.FeatureExtractor(model_name='osnet_ain_x1_0', device='cpu')"
 
-# ── Expose port (Render sets PORT env var, default 5000) ──────────────────────
-EXPOSE 5000
+# ── Hugging Face Spaces uses port 7860 ───────────────────────────────────────
+ENV PORT=7860
+EXPOSE 7860
 
-# ── Run directly with Flask (threaded) ────────────────────────────────────────
-#    Gunicorn's worker timeout kills the process during slow model loading.
-#    Flask threaded mode is fine here — single process with background threads.
-CMD ["sh", "-c", "python app.py"]
+CMD ["python", "app.py"]
