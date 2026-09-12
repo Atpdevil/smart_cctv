@@ -4,7 +4,6 @@ import time
 import threading
 from flask import Flask, render_template, Response, jsonify, request, send_from_directory
 from dotenv import load_dotenv
-from ultralytics import YOLO
 
 load_dotenv()
 from db import init_db, log_exit, get_stats, get_recent_intrusions, get_zones, query_detection_index
@@ -52,15 +51,15 @@ mode_manager.set_mode("query")
 # ── System state (lockdown / mode) ─────────────────────────────────────────────
 system_state = {"lockdown": False}
 
-# ── Shared YOLO model (loaded once, shared across camera threads) ─────────────
-shared_model = YOLO("yolov8n.pt")
+# ── Shared ONNX YOLO model (loaded once, shared across camera threads) ────────
+shared_detector = HumanDetector()
 
 # ── Per-camera pipeline dicts ─────────────────────────────────────────────────
 cam_pipelines = {}
 
 for cam_id, cam_cfg in CAMERAS.items():
     pipeline = {
-        "detector":      HumanDetector(model=shared_model),
+        "detector":      shared_detector,
         "tracker":       PersonTracker(),
         "event_manager": EventManager(camera_id=cam_id),
         "zone_manager":  ZoneManager(camera_id=cam_id),
@@ -122,16 +121,12 @@ def camera_worker(cam_id):
     video_fps  = cap.get(cv2.CAP_PROP_FPS) or 30
     frame_delay = 1.0 / min(video_fps, TARGET_FPS)
 
-    # Pre-compute downscale factor (used every YOLO frame)
-    scale     = DETECTION_WIDTH / full_w
-    small_h   = int(full_h * scale)
-
     frame_count          = 0
     last_tracked_objects = []
 
     print(
         f"[Pipeline] Started for {cam_id} ({pipeline['label']}) "
-        f"@ {video_fps:.1f}fps | {full_w}x{full_h} -> YOLO@{DETECTION_WIDTH}x{small_h}"
+        f"@ {video_fps:.1f}fps | {full_w}x{full_h}"
     )
 
     while True:
@@ -148,19 +143,8 @@ def camera_worker(cam_id):
         # ── YOLO detection every N frames ─────────────────────────────────────
         if frame_count % DETECT_EVERY_N == 1 or DETECT_EVERY_N == 1:
 
-            # Downscale for faster YOLO inference
-            small_frame  = cv2.resize(frame, (DETECTION_WIDTH, small_h))
-            raw_dets     = detector.detect(small_frame)
-
-            # Scale bounding boxes back to original resolution
-            detections = [
-                (
-                    int(x1 / scale), int(y1 / scale),
-                    int(x2 / scale), int(y2 / scale),
-                    conf, cls_id
-                )
-                for (x1, y1, x2, y2, conf, cls_id) in raw_dets
-            ]
+            # ONNX detector handles letterbox + rescaling internally
+            detections = detector.detect(frame)
 
             tracked_objects_local = tracker.update(frame, detections)
 
