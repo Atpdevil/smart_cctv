@@ -1,37 +1,12 @@
+# Core runtime
 opencv-python-headless==4.12.0.88
 numpy
 onnxruntime
 supervision
 
-# LLM support
-openai
-langchain
-langchain-community
-langchain-core
-tiktoken
-
-# Optional (faster LLM)
-groq
+# Web
 Flask
 python-dotenv
-psutil
-PyYAML
-requests
-scipy
-pydantic
-pydantic-settings
-pydantic-core
-anyio
-httpx
-sniffio
-idna
-certifi
-h11
-httpcore
-distro
-blinker
-click
-itsdangerous
-Jinja2
-MarkupSafe
-Werkzeug
+
+# LLM (Groq)
+groq
