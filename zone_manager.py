@@ -1,7 +1,7 @@
 import cv2
 import sqlite3
 from datetime import datetime
-from db import log_intrusion
+from db import log_intrusion, DB_NAME
 
 class ZoneManager:
     def __init__(self, camera_id):
@@ -15,7 +15,7 @@ class ZoneManager:
 
     def load_zones(self):
         try:
-            with sqlite3.connect("cctv.db", timeout=30) as conn:
+            with sqlite3.connect(DB_NAME, timeout=30) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT * FROM zones WHERE camera_id=?", (self.camera_id,))
                 rows = cursor.fetchall()
@@ -37,7 +37,7 @@ class ZoneManager:
         x1, x2 = sorted([x1, x2])
         y1, y2 = sorted([y1, y2])
         try:
-            with sqlite3.connect("cctv.db", timeout=30) as conn:
+            with sqlite3.connect(DB_NAME, timeout=30) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
                     INSERT INTO zones (camera_id, name, x1, y1, x2, y2, zone_type)
@@ -50,7 +50,7 @@ class ZoneManager:
 
     def delete_zone(self, zone_id):
         try:
-            with sqlite3.connect("cctv.db", timeout=30) as conn:
+            with sqlite3.connect(DB_NAME, timeout=30) as conn:
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM zones WHERE id=?", (zone_id,))
                 conn.commit()

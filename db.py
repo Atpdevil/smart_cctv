@@ -1,7 +1,9 @@
 import sqlite3
 from datetime import datetime
 
-DB_NAME = "cctv.db"
+from paths import data_path
+
+DB_NAME = data_path("cctv.db")
 
 
 def init_db():

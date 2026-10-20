@@ -3,11 +3,12 @@ import os
 import cv2
 import numpy as np
 from db import log_entry, log_exit, log_suspicious, log_detection_index
+from paths import data_path
 
 EXIT_THRESHOLD = 2  # seconds before confirming exit
 SUSPICIOUS_THRESHOLD = 10  # seconds stay to mark suspicious
 
-SNAPSHOT_DIR = "snapshots"
+SNAPSHOT_DIR = data_path("snapshots")
 os.makedirs(SNAPSHOT_DIR, exist_ok=True)
 
 # COCO class ID to name mapping (matches detector.py)

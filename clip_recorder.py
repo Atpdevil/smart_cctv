@@ -5,6 +5,8 @@ import time
 from collections import deque
 from datetime import datetime
 
+from paths import data_path
+
 
 class ClipRecorder:
     def __init__(self, buffer_seconds=30, post_event_seconds=10, base_fps=15):
@@ -15,8 +17,9 @@ class ClipRecorder:
         self.post_event_seconds = post_event_seconds
         self.base_fps = base_fps
         self.max_frames = buffer_seconds * base_fps
-        os.makedirs("clips", exist_ok=True)
-        os.makedirs("thumbs", exist_ok=True)
+        self.clips_dir = data_path("clips")
+        os.makedirs(self.clips_dir, exist_ok=True)
+        os.makedirs(data_path("thumbs"), exist_ok=True)
 
     def _get_lock(self, cam_id):
         with self._global_lock:
@@ -46,8 +49,8 @@ class ClipRecorder:
             ts_str = now.strftime("%H%M%S")
             cam_str = str(cam_id)
 
-            clip_dir = os.path.join("clips", cam_str, date_str)
-            thumb_dir = os.path.join("thumbs", cam_str, date_str)
+            clip_dir = os.path.join(self.clips_dir, cam_str, date_str)
+            thumb_dir = os.path.join(data_path("thumbs"), cam_str, date_str)
             os.makedirs(clip_dir, exist_ok=True)
             os.makedirs(thumb_dir, exist_ok=True)
 
@@ -104,7 +107,7 @@ class ClipRecorder:
         if isinstance(timestamp, str) and len(timestamp) >= 10:
             date_str = timestamp[:10]
             time_str = timestamp[11:19].replace(":", "") if len(timestamp) >= 19 else ""
-            clip_dir = os.path.join("clips", cam_str, date_str)
+            clip_dir = os.path.join(self.clips_dir, cam_str, date_str)
             if os.path.isdir(clip_dir):
                 for f in os.listdir(clip_dir):
                     if f.startswith(time_str[:4]):

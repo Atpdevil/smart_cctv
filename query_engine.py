@@ -1,12 +1,13 @@
 import sqlite3
 import re
 from llm_parser import LLMParser
+from db import DB_NAME
 
 
 
 class QueryEngine:
-    def __init__(self, db_path="cctv.db"):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or DB_NAME
 
     def run_query(self, user_query):
 

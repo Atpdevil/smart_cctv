@@ -21,6 +21,15 @@ class HumanDetector:
         if model_path is None:
             model_path = os.path.join(os.path.dirname(__file__), "yolov8n.onnx")
 
+        self.conf_threshold = conf_threshold
+        self.iou_threshold = 0.45
+        self.input_h = self.input_w = 480
+
+        if not os.path.exists(model_path):
+            print(f"[Warn] Model not found: {model_path} — detection disabled")
+            self.session = None
+            return
+
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         # Limit to 2 threads to reduce memory pressure
@@ -43,8 +52,8 @@ class HumanDetector:
 
         print(
             f"[OK] YOLOv8n ONNX loaded  "
-            f"({self.input_w}×{self.input_h}, "
-            f"conf≥{self.conf_threshold})"
+            f"({self.input_w}x{self.input_h}, "
+            f"conf>={self.conf_threshold})"
         )
 
     # ── Pre-process: letterbox + normalize ───────────────────────────────────
@@ -139,6 +148,8 @@ class HumanDetector:
     # ── Public API (same signature as the old ultralytics-based detector) ────
     def detect(self, frame):
         """Run detection on a BGR frame. Returns list of (x1,y1,x2,y2,conf,cls_id)."""
+        if self.session is None:
+            return []
         blob, scale, dx, dy = self._preprocess(frame)
         output = self.session.run(None, {self.input_name: blob})[0]
         return self._postprocess(output, scale, dx, dy)

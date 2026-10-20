@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from db import init_db, log_exit, get_stats, get_recent_intrusions, get_zones, query_detection_index
+from paths import data_path
 from event import EventManager
 from tracker import PersonTracker
 from detector import HumanDetector
@@ -21,8 +22,7 @@ app = Flask(__name__)
 
 # ── Camera → Video file mapping ──────────────────────────────────────────────
 CAMERAS = {
-    "cam-01": {"path": "videos/1.mp4", "label": "CAMERA_01"},
-    "cam-02": {"path": "videos/2.mp4", "label": "CAMERA_02"}
+    "cam-01": {"path": "videos/1.mp4", "label": "CAMERA_01"}
 }
 
 CLASS_NAMES = {
@@ -460,7 +460,7 @@ def api_timeline():
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/clips/<path:filepath>')
 def serve_clip(filepath):
-    clips_dir = os.path.join(os.path.dirname(__file__), 'clips')
+    clips_dir = data_path('clips')
     try:
         return send_from_directory(clips_dir, filepath)
     except Exception:
@@ -469,7 +469,7 @@ def serve_clip(filepath):
 
 @app.route('/thumbs/<path:filepath>')
 def serve_thumb(filepath):
-    thumbs_dir = os.path.join(os.path.dirname(__file__), 'thumbs')
+    thumbs_dir = data_path('thumbs')
     try:
         return send_from_directory(thumbs_dir, filepath)
     except Exception:
@@ -478,7 +478,7 @@ def serve_thumb(filepath):
 
 @app.route('/snapshots/<path:filepath>')
 def serve_snapshot(filepath):
-    snap_dir = os.path.join(os.path.dirname(__file__), 'snapshots')
+    snap_dir = data_path('snapshots')
     try:
         return send_from_directory(snap_dir, filepath)
     except Exception:

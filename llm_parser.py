@@ -9,11 +9,13 @@ load_dotenv()
 class LLMParser:
     def __init__(self):
         self.api_key = os.environ.get("GROQ_API_KEY")
+        self.client = Groq(api_key=self.api_key) if self.api_key else None
         if not self.api_key:
-             print("[Warn] GROQ_API_KEY not found in environment.")
-        self.client = Groq(api_key=self.api_key)
+             print("[Warn] GROQ_API_KEY not found in environment — LLM parsing disabled.")
 
     def parse(self, query):
+        if self.client is None:
+            return {}
         prompt = f"""
 Convert this CCTV query into a structured JSON string. Focus on filtering specific COCO classes (Person=0, Car=2, Bike=3, Bus=5, Truck=7).
 

@@ -11,7 +11,8 @@ class IntentManager:
     def __init__(self):
         self.intent = {}
         self.parser = LLMParser()
-        self._groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        api_key = os.environ.get("GROQ_API_KEY")
+        self._groq_client = Groq(api_key=api_key) if api_key else None
         self.COCO_MAPPING = {
             "person": [0],
             "human": [0],
@@ -53,7 +54,11 @@ class IntentManager:
 
     def parse_search_query(self, query):
         """Parse a natural-language forensic search query into a structured filter dict."""
-        system_prompt = """You are a CCTV search query parser. 
+        if self._groq_client is None:
+            print("[Warn] GROQ_API_KEY not set — search query parsing disabled.")
+            return {}
+
+        system_prompt = """You are a CCTV search query parser.
 Convert the user query into a JSON filter object with these fields 
 (omit fields not mentioned, never add extra text):
 {
